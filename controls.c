@@ -20,6 +20,8 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 
+#include "lib.h"
+
 #ifndef DATA_DIR
 #define DATA_DIR "./data/"
 #endif
@@ -180,7 +182,7 @@ char *get_data(char *fname) {
 
 
 void send_pkt(int mtu) {
-	result |= crypto_aead_encrypt(crypt, &cryptlen, &cf, mtu, ad, adlen, (void*)0, n, k);
+	result |= crypto_aead_encrypt(crypt, &cryptlen, &cf, mtu, ad, adlen, (void*)0, crypto_nonce, crypto_key);
   if(write(s, crypt, cryptlen) != cryptlen) { //ovdje šifrirat?
 	perror("write");
   }
