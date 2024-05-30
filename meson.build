@@ -23,4 +23,4 @@ subdir('art')
 subdir('data')
 
 executable('icsim', ['icsim.c', bundled_lib], dependencies: deps)
-executable('controls', 'controls.c', dependencies: deps)
+executable('controls', ['controls.c', bundled_lib], dependencies: deps)
