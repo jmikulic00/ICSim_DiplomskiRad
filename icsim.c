@@ -475,7 +475,7 @@ int main(int argc, char *argv[]) {
       SDL_Delay(3);
     }
 
-      nbytes = recvmsg(can, crypt, 0); //ovdje dešifrirat?
+      nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
       result |= crypto_aead_decrypt(data, &datalen, (void*)0, &msg, nbytes, ad, adlen, crypto_nonce, crypto_key);
       if (result)
       {
