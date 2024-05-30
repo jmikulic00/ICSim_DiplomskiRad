@@ -222,8 +222,6 @@ void snprintf_can_error_frame(char *buf, size_t len, struct canfd_frame *cf,
 #ifndef ASCON_H_
 #define ASCON_H_
 
-#include <stdint.h>
-
 typedef struct {
   uint64_t x0, x1, x2, x3, x4;
 } state_t;
@@ -248,10 +246,6 @@ int crypto_aead_decrypt(unsigned char *m, unsigned long long *mlen,
 #define PERMUTATIONS_H_
 
 #include <stdint.h>
-
-#include "ascon.h"
-#include "printstate.h"
-#include "round.h"
 
 #define ASCON_128_KEYBYTES 16
 #define ASCON_128A_KEYBYTES 16
@@ -361,8 +355,6 @@ static inline void P6(state_t* s) {
 
 #ifdef ASCON_PRINTSTATE
 
-#include "ascon.h"
-#include "word.h"
 
 void printword(const char* text, const word_t x);
 void printstate(const char* text, const state_t* s);
@@ -385,8 +377,6 @@ void printstate(const char* text, const state_t* s);
 #ifndef ROUND_H_
 #define ROUND_H_
 
-#include "ascon.h"
-#include "printstate.h"
 
 static inline uint64_t ROR(uint64_t x, int n) {
   return (x << (64 - n)) | (x >> n);
