@@ -79,13 +79,11 @@ unsigned char crypto_key[CRYPTO_KEYBYTES] = {0, 1, 2,  3,  4,  5,  6,  7,
 
 
 int result = 0;
-unsigned long long adlen = 64;
-unsigned long long datalen = 64;
+unsigned long long adlen = 0;
+unsigned long long datalen = 48;
 unsigned long long cryptlen = CRYPTO_ABYTES;
-uint8_t data[128], hh[128], tt[128];
-uint8_t ad[64] = {0, 1, 2,  3,  4,  5,  6,  7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
-28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60,
-61, 62, 63};
+uint8_t data[48], hh[128], tt[128];
+uint8_t ad[64] = {};
 
 /*decrypt*/
 int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
@@ -565,19 +563,20 @@ int main(int argc, char *argv[]) {
     }
       
       nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
-      result |= crypto_aead_decrypt(data, &datalen, (void*)0, &msg, nbytes, ad, adlen, crypto_nonce, crypto_key);
+      result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, nbytes, ad, adlen, crypto_nonce, crypto_key);
       if (result)
       {
         perror("decryption");
         return 1;
       }
-      if (datalen < 0) {
+      *frame.data = data
+      if (nbytes < 0) {
         perror("read");
         return 1;
       }  
-      if ((size_t)datalen == CAN_MTU)
+      if ((size_t)nbytes == CAN_MTU)
         maxdlen = CAN_MAX_DLEN;
-      else if ((size_t)datalen == CANFD_MTU)
+      else if ((size_t)nbytes == CANFD_MTU)
         maxdlen = CANFD_MAX_DLEN;
       else {
         fprintf(stderr, "read: incomplete CAN frame\n");
