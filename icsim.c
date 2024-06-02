@@ -564,6 +564,7 @@ int main(int argc, char *argv[]) {
       
       nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
       result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, nbytes, ad, adlen, crypto_nonce, crypto_key);
+      printf("result is: %d\n", result);
       if (result)
       {
         perror("decryption");
