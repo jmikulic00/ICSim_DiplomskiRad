@@ -569,7 +569,7 @@ int main(int argc, char *argv[]) {
         perror("decryption");
         return 1;
       }
-      *frame.data = data
+      *frame.data = data;
       if (nbytes < 0) {
         perror("read");
         return 1;
