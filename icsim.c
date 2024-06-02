@@ -82,7 +82,7 @@ int result = 0;
 unsigned long long adlen = 0;
 unsigned long long datalen = 48;
 unsigned long long cryptlen = CRYPTO_ABYTES;
-uint8_t data[48], hh[128], tt[128];
+uint8_t data[48];
 uint8_t ad[64] = {};
 
 /*decrypt*/

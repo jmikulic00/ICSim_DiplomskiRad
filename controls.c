@@ -258,8 +258,11 @@ char *get_data(char *fname) {
 
 
 void send_pkt(int mtu) {
+	printf("prije kriptiranja %s\n", cf.data);
 	result |= crypto_aead_encrypt(ciphertext, &cryptlen, cf.data, datalen, ad, adlen, (void*)0, crypto_nonce, crypto_key);
+	printf("poslije kriptiranja %s\n", ciphertext);
 	*cf.data = *ciphertext;
+	printf("poslije pridruživanja %s\n", cf.data);
   if(write(s, &cf, mtu) != mtu) { //ovdje šifrirat?
 	perror("write");
   }
