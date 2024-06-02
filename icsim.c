@@ -93,7 +93,12 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
                         const unsigned char* k) {
   (void)nsec;
 
-  if (clen < CRYPTO_ABYTES) return -1;
+
+
+  if (clen < CRYPTO_ABYTES) {
+    printf("clen premalen, error\n");
+    return -1;
+  }
 
   /* set plaintext size */
   *mlen = clen - CRYPTO_ABYTES;
@@ -561,9 +566,12 @@ int main(int argc, char *argv[]) {
    	}
       SDL_Delay(3);
     }
-      
+      print("data before %s\n", frame.data);
       nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
+      printf("received msg %s\n", &msg);
+      print("received data %s\n", frame.data);
       result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, nbytes, ad, adlen, crypto_nonce, crypto_key);
+      printf("decrypted data %s\n", data);
       printf("result is: %d\n", result);
       if (result)
       {
@@ -571,6 +579,7 @@ int main(int argc, char *argv[]) {
         return 1;
       }
       *frame.data = data;
+      printf("pridruženo %s\n", frame.data);
       if (nbytes < 0) {
         perror("read");
         return 1;
