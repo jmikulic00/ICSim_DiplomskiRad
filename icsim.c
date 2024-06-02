@@ -566,10 +566,10 @@ int main(int argc, char *argv[]) {
    	}
       SDL_Delay(3);
     }
-      print("data before %s\n", frame.data);
+      printf("data before %s\n", frame.data);
       nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
       printf("received msg %s\n", &msg);
-      print("received data %s\n", frame.data);
+      printf("received data %s\n", frame.data);
       result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, nbytes, ad, adlen, crypto_nonce, crypto_key);
       printf("decrypted data %s\n", data);
       printf("result is: %d\n", result);
