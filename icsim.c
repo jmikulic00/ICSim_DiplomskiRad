@@ -176,6 +176,8 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
   for (int i = 0; i < CRYPTO_ABYTES; ++i) result |= c[i] ^ t[i];
   result = (((result - 1) >> 8) & 1) - 1;
 
+  printf("došao do kraja i svejedno\n");
+
   return result;
 }
 
