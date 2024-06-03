@@ -71,19 +71,21 @@ SDL_Texture *needle_tex = NULL;
 SDL_Texture *sprite_tex = NULL;
 SDL_Rect speed_rect;
 
-unsigned char crypto_nonce[CRYPTO_NPUBBYTES] = {0, 1, 2,  3,  4,  5,  6,  7,
-                                       8, 9, 10, 11, 12, 13, 14, 15};
-unsigned char crypto_key[CRYPTO_KEYBYTES] = {0, 1, 2,  3,  4,  5,  6,  7,
-                                        8, 9, 10, 11, 12, 13, 14, 15};
-
-
+unsigned char crypto_key[CRYPTO_KEYBYTES] = {0, 1, 2,  3,  4,  5,  6,  7, 8, 9, 10, 11, 12, 13, 14, 15};
+unsigned char crypto_nonce[CRYPTO_NPUBBYTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int counter = 0;
 
 int result = 0;
 unsigned long long adlen = 0;
-unsigned long long datalen = 48;
-unsigned long long cryptlen = CRYPTO_ABYTES;
-uint8_t data[48];
+unsigned long long datalen = 5;
+unsigned long long cryptlen = 5 + CRYPTO_ABYTES;
+uint8_t data[64];
 uint8_t ad[64] = {};
+
+void update_nonce() {
+  crypto_nonce[counter] = (crypto_nonce[counter] + 1) % 255;
+  counter = (counter + 1) % 16;
+}
 
 /*decrypt*/
 int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
@@ -96,7 +98,6 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
 
 
   if (clen < CRYPTO_ABYTES) {
-    printf("clen premalen, error\n");
     return -1;
   }
 
@@ -175,8 +176,6 @@ int crypto_aead_decrypt(unsigned char* m, unsigned long long* mlen,
   int result = 0;
   for (int i = 0; i < CRYPTO_ABYTES; ++i) result |= c[i] ^ t[i];
   result = (((result - 1) >> 8) & 1) - 1;
-
-  printf("došao do kraja i svejedno\n");
 
   return result;
 }
@@ -568,20 +567,15 @@ int main(int argc, char *argv[]) {
    	}
       SDL_Delay(3);
     }
-      printf("data before %s\n", frame.data);
-      nbytes = recvmsg(can, &msg, 0); //ovdje dešifrirat?
-      printf("received msg %s\n", &msg);
-      printf("received data %s\n", frame.data);
-      result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, nbytes, ad, adlen, crypto_nonce, crypto_key);
-      printf("decrypted data %s\n", data);
-      printf("result is: %d\n", result);
+      nbytes = recvmsg(can, &msg, 0);
+      result |= crypto_aead_decrypt(data, &datalen, (void*)0, frame.data, cryptlen, ad, adlen, crypto_nonce, crypto_key);
+      update_nonce();
       if (result)
       {
         perror("decryption");
         return 1;
       }
-      *frame.data = data;
-      printf("pridruženo %s\n", frame.data);
+      memcpy(frame.data, data, datalen);
       if (nbytes < 0) {
         perror("read");
         return 1;

@@ -154,18 +154,21 @@ SDL_Renderer *renderer = NULL;
 SDL_Texture *base_texture = NULL;
 int gControllerType = USB_CONTROLLER;
 
-unsigned char crypto_nonce[CRYPTO_NPUBBYTES] = {0, 1, 2,  3,  4,  5,  6,  7,
-                                       8, 9, 10, 11, 12, 13, 14, 15};
-unsigned char crypto_key[CRYPTO_KEYBYTES] = {0, 1, 2,  3,  4,  5,  6,  7,
-                                        8, 9, 10, 11, 12, 13, 14, 15};
+unsigned char crypto_key[CRYPTO_KEYBYTES] = {0, 1, 2,  3,  4,  5,  6,  7, 8, 9, 10, 11, 12, 13, 14, 15};
+unsigned char crypto_nonce[CRYPTO_NPUBBYTES] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+int counter = 0;
 
 int result = 0;
 unsigned long long adlen = 0;
-unsigned long long datalen = CAN_MTU - CRYPTO_ABYTES;
+unsigned long long datalen = 5;
 unsigned long long cryptlen = CRYPTO_ABYTES;
 uint8_t ciphertext[64];
 uint8_t ad[64] = {};
 
+void update_nonce() {
+  crypto_nonce[counter] = (crypto_nonce[counter] + 1) % 255;
+  counter = (counter + 1) % 16;
+}
 
 /*encrypt*/
 int crypto_aead_encrypt(unsigned char* c, unsigned long long* clen,
@@ -258,12 +261,10 @@ char *get_data(char *fname) {
 
 
 void send_pkt(int mtu) {
-	printf("prije kriptiranja %s\n", cf.data);
 	result |= crypto_aead_encrypt(ciphertext, &cryptlen, cf.data, datalen, ad, adlen, (void*)0, crypto_nonce, crypto_key);
-	printf("poslije kriptiranja %s\n", ciphertext);
-	*cf.data = *ciphertext;
-	printf("poslije pridruživanja %s\n", cf.data);
-  if(write(s, &cf, mtu) != mtu) { //ovdje šifrirat?
+	update_nonce();
+	memcpy(cf.data, ciphertext, cryptlen);
+  if(write(s, &cf, mtu) != mtu) {
 	perror("write");
   }
 }
@@ -285,7 +286,7 @@ void send_lock(char door) {
 	cf.data[door_pos] = door_state;
 	if (door_pos) randomize_pkt(0, door_pos);
 	if (door_len != door_pos + 1) randomize_pkt(door_pos + 1, door_len);
-	send_pkt(CAN_MTU);
+	send_pkt(CANFD_MTU);
 }
 
 void send_unlock(char door) {
@@ -296,7 +297,7 @@ void send_unlock(char door) {
 	cf.data[door_pos] = door_state;
 	if (door_pos) randomize_pkt(0, door_pos);
 	if (door_len != door_pos + 1) randomize_pkt(door_pos + 1, door_len);
-	send_pkt(CAN_MTU);
+	send_pkt(CANFD_MTU);
 }
 
 void send_speed() {
@@ -315,7 +316,7 @@ void send_speed() {
 		        }
 		        if (speed_pos) randomize_pkt(0, speed_pos);
 		        if (speed_len != speed_pos + 2) randomize_pkt(speed_pos+2, speed_len);
-		        send_pkt(CAN_MTU);
+		        send_pkt(CANFD_MTU);
 		}
 	} else {
 		int kph = (current_speed / 0.6213751) * 100;
@@ -330,7 +331,7 @@ void send_speed() {
 		}
 		if (speed_pos) randomize_pkt(0, speed_pos);
 		if (speed_len != speed_pos + 2) randomize_pkt(speed_pos+2, speed_len);
-		send_pkt(CAN_MTU);
+		send_pkt(CANFD_MTU);
 	}
 }
 
@@ -341,7 +342,7 @@ void send_turn_signal() {
 	cf.data[signal_pos] = signal_state;
 	if(signal_pos) randomize_pkt(0, signal_pos);
 	if(signal_len != signal_pos + 1) randomize_pkt(signal_pos+1, signal_len);
-	send_pkt(CAN_MTU);
+	send_pkt(CANFD_MTU);
 }
 
 // Checks throttle to see if we should accelerate or decelerate the vehicle
@@ -662,7 +663,7 @@ int main(int argc, char *argv[]) {
 		printf("Error: Couldn't fork bg player\n");
 		exit(-1);
 	} else if (play_id == 0) {
-		play_can_traffic();
+		//play_can_traffic();
 		// Shouldn't return
 		exit(0);
 	}
